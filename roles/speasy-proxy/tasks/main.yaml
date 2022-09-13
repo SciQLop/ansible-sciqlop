@@ -1,0 +1,89 @@
+- name: Install podman
+  package:
+    name: [podman, git]
+    state: present
+
+- name: Add the user sciqlop
+  ansible.builtin.user:
+    name: sciqlop
+    shell: /bin/bash
+
+- name: clone speasy_proxy
+  shell: |
+    cd ~
+    [ -d speasy_proxy ] || git clone https://github.com/SciQLop/speasy_proxy
+  become: yes
+  become_user: sciqlop
+
+- name: link static files and ensure systemd starts services for sciqlop user
+  shell: |
+    [ -d /srv/sciqlop-proxy-static ] || ln -s /home/sciqlop/speasy_proxy/speasy_proxy/static /srv/sciqlop-proxy-static
+    loginctl enable-linger sciqlop
+
+- name: Allow nginx to read /srv
+  community.general.sefcontext:
+    target: '/srv(/.*)?'
+    setype: httpd_sys_content_t
+    state: present
+  when: not disable_selinux
+
+- name: copy update-scripts
+  template:
+    src: "{{ item }}"
+    dest: /usr/bin/
+    owner: root
+    group: root
+    mode: '0655'
+  loop:
+    - update-cache-legacy
+    - update-cache-stable
+    - update-cache-dev
+
+
+
+- name: Create data and logs folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+    recurse: yes
+    owner: sciqlop
+    group: sciqlop
+  loop:
+    - /DATA/log/speasy
+    - /DATA/log_dev/speasy
+    - /DATA/log_legacy/speasy
+    - /DATA/speasy_proxy
+    - /DATA/speasy_proxy_dev
+    - /DATA/speasy_proxy_legacy
+
+- name: Allow podman to access /DATA
+  community.general.sefcontext:
+    target: '/DATA(/.*)?'
+    setype: container_file_t
+    state: present
+  when: not disable_selinux
+
+- name: Allow speasy podman user to access /DATA
+  shell: |
+    podman unshare chown -R 1000:1000 /DATA/log_legacy /DATA/log /DATA/log_dev /DATA/speasy_proxy /DATA/speasy_proxy_dev /DATA/speasy_proxy_legacy
+  become: yes
+  become_user: sciqlop
+  when: not disable_selinux
+
+
+- name: Only pc-solar5 can access cockpit
+  ansible.posix.firewalld:
+    rich_rule: rule family="ipv4" source address="129.104.27.168" service name="cockpit" accept
+    zone: public
+    permanent: yes
+    immediate: yes
+    state: enabled
+
+- name: Only pc-solar5 can ssh 
+  ansible.posix.firewalld:
+    rich_rule: rule family="ipv4" service name="ssh" source address="129.104.27.168" accept
+    zone: public
+    permanent: yes
+    immediate: yes
+    state: enabled

@@ -1,0 +1,59 @@
+server {
+	listen 80;
+        listen [::]:80;
+	root         /srv/sciqlop-web;
+	gzip on;
+    	gzip_types      text/html application/json text/plain application/xml;
+    	gzip_proxied    no-cache no-store private expired auth;
+    	gzip_min_length 1000;
+	location /data/{
+                autoindex on;
+		alias /srv/sciqlop-data/;
+	}
+
+	location /cache{
+                rewrite /cache/(.*) /$1  break;
+                proxy_set_header   Host $host;
+                proxy_pass http://localhost:6543;
+                proxy_redirect          off;
+
+                client_max_body_size    1m;
+                client_body_buffer_size 1m;
+                proxy_connect_timeout   200s;
+                proxy_send_timeout      200s;
+                proxy_read_timeout      200s;
+                proxy_buffering         off;
+                proxy_temp_file_write_size 64k;
+
+	}
+    location /cache_legacy{
+                rewrite /cache_legacy/(.*) /$1  break;
+                proxy_set_header   Host $host;
+                proxy_pass http://localhost:6545;
+                proxy_redirect          off;
+
+                client_max_body_size    1m;
+                client_body_buffer_size 1m;
+                proxy_connect_timeout   200s;
+                proxy_send_timeout      200s;
+                proxy_read_timeout      200s;
+                proxy_buffering         off;
+                proxy_temp_file_write_size 64k;
+
+    }
+	location /cache-dev{
+		    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	        rewrite /cache-dev(.*) /$1  break;
+    		proxy_set_header   Host $host;
+    		proxy_pass http://localhost:6544;
+        	proxy_redirect          off;
+
+        	client_max_body_size    1m;
+        	client_body_buffer_size 1m;
+        	proxy_connect_timeout   60s;
+        	proxy_send_timeout      90s;
+        	proxy_read_timeout      90s;
+        	proxy_buffering         off;
+        	proxy_temp_file_write_size 64k;
+	}
+}

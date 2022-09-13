@@ -1,0 +1,13 @@
+#!/bin/bash
+if [[ $EUID -ne 1001 ]]; then
+   echo "This script must be run as sciqlop user" 
+   exit 1
+fi
+export XDG_RUNTIME_DIR=/run/user/"$(id -u)"
+podman pull registry.lpp.polytechnique.fr/sciqlop/speasy_proxy:legacy
+podman rm speasy-proxy-legacy_old
+podman stop speasy-proxy-legacy
+podman rename speasy-proxy-legacy speasy-proxy-legacy_old
+podman run --restart unless-stopped --ulimit nofile=262144:262144 -d -v /DATA/speasy_proxy_legacy:/data:Z -v /DATA/log_legacy:/log:Z -e SPEASY_CACHE_SIZE="1e12" -e SPEASY_PROXY_PREFIX='/cache_legacy' -e PORT=6545 -e SPEASY_PROXY_URL="http://sciqlop.lpp.polytechnique.fr" -p6545:6545 --name speasy-proxy-legacy registry.lpp.polytechnique.fr/sciqlop/speasy_proxy:legacy
+podman generate systemd --name speasy-proxy-legacy > ~/.config/systemd/user/speasy-proxy-legacy.service
+systemctl --user enable speasy-proxy-legacy 

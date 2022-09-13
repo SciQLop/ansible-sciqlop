@@ -1,0 +1,10 @@
+- name: Base setup
+  hosts: all
+  remote_user: root
+  roles:
+    - lpp_machine
+    - centos
+    - fail2ban
+    - speasy-proxy
+    - web-server
+    

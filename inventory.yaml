@@ -1,0 +1,13 @@
+---
+all:
+  children:
+    production:
+      vars:
+        enable_jails: [sshd]
+        join_domain: false
+        disable_selinux: false
+      hosts:
+        sciqlop.lab-lpp.local:
+          ansible_host: 129.104.27.102
+
+
