@@ -80,9 +80,17 @@
     immediate: yes
     state: enabled
 
-- name: Only pc-solar5 can ssh 
+- name: pc-solar5 can ssh 
   ansible.posix.firewalld:
     rich_rule: rule family="ipv4" service name="ssh" source address="129.104.27.168" accept
+    zone: public
+    permanent: yes
+    immediate: yes
+    state: enabled
+
+- name: skippy can ssh 
+  ansible.posix.firewalld:
+    rich_rule: rule family="ipv4" service name="ssh" source address="129.104.27.96" accept
     zone: public
     permanent: yes
     immediate: yes

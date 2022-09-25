@@ -8,6 +8,6 @@ all:
         disable_selinux: false
       hosts:
         sciqlop.lab-lpp.local:
-          ansible_host: 129.104.27.102
+          ansible_host: 129.104.27.10
 
 
