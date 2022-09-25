@@ -8,6 +8,6 @@ podman pull registry.lpp.polytechnique.fr/sciqlop/speasy_proxy:stable
 podman rm speasy-proxy_old
 podman stop speasy-proxy
 podman rename speasy-proxy speasy-proxy_old
-podman run --restart unless-stopped --ulimit nofile=262144:262144 -d -v /DATA/speasy_proxy:/data:Z -v /DATA/log:/log:Z -e SPEASY_CACHE_SIZE="5e12" -e SPEASY_PROXY_PREFIX='/cache' -e PORT=6543 -e SPEASY_PROXY_URL="http://sciqlop.lpp.polytechnique.fr" -p6543:6543 --name speasy-proxy registry.lpp.polytechnique.fr/sciqlop/speasy_proxy:stable
+podman run --restart unless-stopped --ulimit nofile=262144:262144 -d -v /DATA/speasy_proxy:/data:Z -v /DATA/log:/log:Z -e SPEASY_CACHE_SIZE="5e12" -e SPEASY_PROXY_PREFIX='/cache' -e PORT=6543 -e SPEASY_PROXY_ENABLED=false -e SPEASY_PROXY_SERVER_URL="http://sciqlop.lpp.polytechnique.fr" -p6543:6543 --name speasy-proxy registry.lpp.polytechnique.fr/sciqlop/speasy_proxy:stable
 podman generate systemd --name speasy-proxy > ~/.config/systemd/user/speasy-proxy.service
 systemctl --user enable speasy-proxy
